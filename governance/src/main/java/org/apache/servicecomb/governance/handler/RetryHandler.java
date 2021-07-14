@@ -17,14 +17,12 @@
 package org.apache.servicecomb.governance.handler;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
+import io.github.resilience4j.core.IntervalFunction;
 import org.apache.servicecomb.governance.handler.ext.RetryExtension;
 import org.apache.servicecomb.governance.marker.GovernanceRequest;
-import org.apache.servicecomb.governance.policy.RateLimitingPolicy;
 import org.apache.servicecomb.governance.policy.RetryPolicy;
 import org.apache.servicecomb.governance.properties.RetryProperties;
 import org.slf4j.Logger;
@@ -65,21 +63,26 @@ public class RetryHandler extends AbstractGovernanceHandler<Retry, RetryPolicy> 
   private Retry getRetry(RetryPolicy retryPolicy) {
     LOGGER.info("applying new policy: {}", retryPolicy.toString());
 
-    List<Integer> statusList = Arrays.stream(retryPolicy.getRetryOnResponseStatus().split(","))
-        .map(Integer::parseInt).collect(Collectors.toList());
-
     RetryConfig config = RetryConfig.custom()
         .maxAttempts(retryPolicy.getMaxAttempts())
-        .retryOnResult(getPredicate(statusList))
+        .retryOnResult(getPredicate(retryPolicy.getRetryOnResponseStatus()))
         .retryExceptions(retryExtension.retryExceptions())
-        .waitDuration(Duration.ofMillis(retryPolicy.getWaitDuration()))
+        .intervalFunction(getIntervalFunction(retryPolicy))
         .build();
 
     RetryRegistry registry = RetryRegistry.of(config);
     return registry.retry(retryPolicy.getName());
   }
 
-  private Predicate<Object> getPredicate(List<Integer> statusList) {
+  private IntervalFunction getIntervalFunction(RetryPolicy retryPolicy) {
+    if (retryPolicy.getRetryStrategy().equals("RandomBackoff")) {
+      return IntervalFunction.ofExponentialRandomBackoff(Integer.valueOf(retryPolicy.getInitialInterval()),
+          retryPolicy.getMultiplier(), retryPolicy.getRandomizationFactor());
+    }
+    return IntervalFunction.of(Duration.ofMillis(Integer.valueOf(retryPolicy.getWaitDuration())));
+  }
+
+  private Predicate<Object> getPredicate(List<String> statusList) {
     return response -> retryExtension.isRetry(statusList, response);
   }
 }

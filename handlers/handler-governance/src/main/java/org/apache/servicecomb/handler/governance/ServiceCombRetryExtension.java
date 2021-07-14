@@ -36,29 +36,25 @@ import io.vertx.core.VertxException;
 @Component
 public class ServiceCombRetryExtension implements RetryExtension {
   @Override
-  public boolean isRetry(List<Integer> statusList, Object result) {
-    if (result instanceof Response) {
-      Response resp = (Response) result;
-      if (resp.isFailed()) {
-        if (InvocationException.class.isInstance(resp.getResult())) {
-          InvocationException e = resp.getResult();
-          return e.getStatusCode() == ExceptionFactory.CONSUMER_INNER_STATUS_CODE
-              || e.getStatusCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()
-              || e.getStatusCode() == Status.BAD_GATEWAY.getStatusCode();
-        } else {
-          return true;
-        }
-      } else {
-        return false;
-      }
+  public boolean isRetry(List<String> statusList, Object result) {
+    if (!(result instanceof Response)) {
+      return false;
     }
-    return false;
+    Response resp = (Response) result;
+    if (!resp.isFailed()) {
+      return false;
+    }
+    if (InvocationException.class.isInstance(resp.getResult())) {
+      InvocationException e = resp.getResult();
+      return isContain(statusList, String.valueOf(e.getStatusCode()));
+    }
+    return true;
   }
 
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Class<? extends Throwable>[] retryExceptions() {
-    return new Class[] {
+    return new Class[]{
         ConnectException.class,
         SocketTimeoutException.class,
         IOException.class,

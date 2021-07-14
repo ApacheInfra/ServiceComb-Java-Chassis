@@ -42,9 +42,9 @@ public class CircuitBreakerPolicy extends AbstractPolicy {
 
   private int slowCallRateThreshold = DEFAULT_SLOW_CALL_RATE_THRESHOLD;
 
-  private int waitDurationInOpenState = DEFAULT_WAIT_DURATION_IN_OPEN_STATUS;
+  private String waitDurationInOpenState;
 
-  private int slowCallDurationThreshold = DEFAULT_SLOW_CALL_DURATION_THRESHOLD;
+  private String slowCallDurationThreshold;
 
   private int permittedNumberOfCallsInHalfOpenState = DEFAULT_PERMITTED;
 
@@ -65,10 +65,10 @@ public class CircuitBreakerPolicy extends AbstractPolicy {
     if (slowCallRateThreshold > 100 || slowCallRateThreshold <= 0) {
       return false;
     }
-    if (waitDurationInOpenState <= 0) {
+    if (Integer.valueOf(getWaitDurationInOpenState()) <= 0) {
       return false;
     }
-    if (slowCallDurationThreshold <= 0) {
+    if (Integer.valueOf(getSlowCallDurationThreshold()) <= 0) {
       return false;
     }
     if (permittedNumberOfCallsInHalfOpenState <= 0) {
@@ -97,19 +97,19 @@ public class CircuitBreakerPolicy extends AbstractPolicy {
     this.slowCallRateThreshold = slowCallRateThreshold;
   }
 
-  public int getWaitDurationInOpenState() {
-    return waitDurationInOpenState;
+  public String getWaitDurationInOpenState() {
+    return getTimeDuration(waitDurationInOpenState, DEFAULT_WAIT_DURATION_IN_OPEN_STATUS);
   }
 
-  public void setWaitDurationInOpenState(int waitDurationInOpenState) {
+  public void setWaitDurationInOpenState(String waitDurationInOpenState) {
     this.waitDurationInOpenState = waitDurationInOpenState;
   }
 
-  public int getSlowCallDurationThreshold() {
-    return slowCallDurationThreshold;
+  public String getSlowCallDurationThreshold() {
+    return getTimeDuration(slowCallDurationThreshold, DEFAULT_SLOW_CALL_DURATION_THRESHOLD);
   }
 
-  public void setSlowCallDurationThreshold(int slowCallDurationThreshold) {
+  public void setSlowCallDurationThreshold(String slowCallDurationThreshold) {
     this.slowCallDurationThreshold = slowCallDurationThreshold;
   }
 

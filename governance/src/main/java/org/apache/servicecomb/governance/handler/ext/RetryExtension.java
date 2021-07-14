@@ -18,9 +18,21 @@
 package org.apache.servicecomb.governance.handler.ext;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 public interface RetryExtension {
-  boolean isRetry(List<Integer> statusList, Object result);
+  boolean isRetry(List<String> statusList, Object result);
 
   Class<? extends Throwable>[] retryExceptions();
+
+  default Boolean isContain(List<String> ststusList, String responseStatus) {
+    return ststusList.stream().anyMatch(status -> judge(status, responseStatus));
+  }
+
+  default Boolean judge(String status, String responseStatus) {
+    char[] statusChar = status.toCharArray();
+    char[] responseChar = responseStatus.toCharArray();
+    return IntStream.range(0, statusChar.length - 1).noneMatch(i ->
+        statusChar[i] != responseChar[i] && statusChar[i] != 'x');
+  }
 }

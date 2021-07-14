@@ -27,4 +27,27 @@ public abstract class AbstractPolicy extends Configurable {
     }
     return true;
   }
+
+  public String getTimeDuration(String time, int defaultValue) {
+    return String.valueOf(defaultMethod(time, defaultValue));
+  }
+
+  public int defaultMethod(String time, int defaultValue) {
+    if (StringUtils.isEmpty(time)) {
+      return defaultValue;
+    }
+    if (time.endsWith("ms")) {
+      return Integer.valueOf(time.substring(0, time.length() - 2));
+    }
+    if (time.endsWith("s")) {
+      return Integer.valueOf(time.substring(0, time.length() - 1)) * 1000;
+    }
+    if (time.endsWith("m")) {
+      return Integer.valueOf(time.substring(0, time.length() - 1)) * 60 * 1000;
+    }
+    if (time.endsWith("h")) {
+      return Integer.valueOf(time.substring(0, time.length() - 1)) * 60 * 60 * 1000;
+    }
+    return Integer.valueOf(time) * 1000;
+  }
 }

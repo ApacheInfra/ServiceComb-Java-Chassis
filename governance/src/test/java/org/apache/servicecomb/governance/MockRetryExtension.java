@@ -26,7 +26,7 @@ import org.apache.servicecomb.governance.handler.ext.RetryExtension;
 @Component
 public class MockRetryExtension implements RetryExtension {
   @Override
-  public boolean isRetry(List<Integer> statusList, Object result) {
+  public boolean isRetry(List<String> statusList, Object result) {
     return false;
   }
 
